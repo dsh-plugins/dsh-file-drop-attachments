@@ -1,3 +1,7 @@
+param(
+  [switch]$NoInstall
+)
+
 $ErrorActionPreference = 'Stop'
 
 # Offline installer for dsh-file-drop-attachments.
@@ -66,20 +70,24 @@ if ($legacy.Count -gt 0) {
   Write-Host "Removed $($legacy.Count) legacy cordis.patch.yml mount row(s) for file-drop-attachments."
 }
 
-Push-Location $profileRoot
-try {
-  if (Get-Command dsh -ErrorAction SilentlyContinue) {
-    # The official manager runs pnpm and reconciles dsh.profile.bundles.
-    & dsh plugin --profile web install
-    if ($LASTEXITCODE -ne 0) { throw "dsh plugin install failed with exit code $LASTEXITCODE" }
-  } elseif (Get-Command pnpm -ErrorAction SilentlyContinue) {
-    & pnpm install
-    if ($LASTEXITCODE -ne 0) { throw "pnpm install failed with exit code $LASTEXITCODE" }
-  } else {
-    Write-Warning 'Neither dsh nor pnpm was found. Run pnpm install manually from the web profile.'
+if ($NoInstall) {
+  Write-Host 'Skipped the profile package manager (-NoInstall).'
+} else {
+  Push-Location $profileRoot
+  try {
+    if (Get-Command dsh -ErrorAction SilentlyContinue) {
+      # The official manager runs pnpm and reconciles dsh.profile.bundles.
+      & dsh plugin --profile web install
+      if ($LASTEXITCODE -ne 0) { throw "dsh plugin install failed with exit code $LASTEXITCODE" }
+    } elseif (Get-Command pnpm -ErrorAction SilentlyContinue) {
+      & pnpm install
+      if ($LASTEXITCODE -ne 0) { throw "pnpm install failed with exit code $LASTEXITCODE" }
+    } else {
+      Write-Warning 'Neither dsh nor pnpm was found. Run pnpm install manually from the web profile.'
+    }
+  } finally {
+    Pop-Location
   }
-} finally {
-  Pop-Location
 }
 
 Write-Host "Installed $packageName from $pluginRoot"

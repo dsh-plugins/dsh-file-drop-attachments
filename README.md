@@ -72,7 +72,7 @@ For a machine without git access, unpack the repository anywhere and run the bun
 powershell -ExecutionPolicy Bypass -File ./install.ps1
 ```
 
-Restart DSH Web afterwards, exactly as with the `dsh plugin` path.
+Restart DSH Web afterwards, exactly as with the `dsh plugin` path. Add `-NoInstall` when the dependency is already linked and only the files and the profile registration need refreshing.
 
 ## License
 
