@@ -66,10 +66,14 @@ dsh plugin --profile web add github:dsh-plugins/dsh-file-drop-attachments
 
 ### Offline install
 
-For a machine without git access, unpack the repository anywhere and run the bundled installer, which copies the files under `$DSH_HOME/plugins` and writes the mount row into the profile by hand:
+For a machine without git access, unpack the repository anywhere and run the bundled installer. It copies the files under `$DSH_HOME/plugins`, links that copy from the web profile, registers it in `dsh.profile.bundles`, drops a legacy hand-written mount row if one is present, and then runs the profile's package manager:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File ./install.ps1
 ```
 
-That path edits the profile directly, so use it only on a profile that is not already mounting the plugin through `dsh.profile.bundles`.
+Restart DSH Web afterwards, exactly as with the `dsh plugin` path.
+
+## License
+
+GPL-3.0-only. See `LICENSE`.
