@@ -1,0 +1,18 @@
+# dsh-file-drop-attachments bundle patch layer.
+#
+# Declared through `dsh.bundle.patch` in package.json, so the official CLI
+#
+#   dsh plugin --profile web add github:dsh-plugins/dsh-file-drop-attachments
+#
+# installs the package and reconciles `dsh.profile.bundles` against the
+# installed state, appending `dsh-file-drop-attachments-persisted` to the bundle
+# stack. The profile boot then merges this insert exactly like the hand-written
+# mount row it replaces — no profile file edits needed.
+#
+# A profile that still carries the old manual mount row for
+# `file-drop-attachments` in its own cordis.patch.yml must drop that row before
+# switching to this channel, or the plugin mounts twice (two Host halves, two
+# composer rails).
+- insert:
+    - id: file-drop-attachments
+      name: 'dsh-file-drop-attachments-persisted'

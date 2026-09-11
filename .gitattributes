@@ -1,0 +1,3 @@
+# The shipped client bundle is loaded verbatim from disk, so keep every file's
+# line endings canonical (LF) in the repository and in the working tree.
+* text=auto eol=lf
