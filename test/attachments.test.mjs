@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { basename, dirname, join } from 'node:path'
+import { basename, dirname, join, resolve } from 'node:path'
 import test from 'node:test'
 import vm from 'node:vm'
 
@@ -140,7 +140,7 @@ test('plugin wraps registered adapters and restores them on dispose', async () =
 test('server only returns validated absolute attachment paths', async () => {
   const fs = {
     async resolve(candidate, options) {
-      return { targetKey: `${options.cwd}\\${candidate}` }
+      return { targetKey: join(options.cwd, candidate) }
     },
     async stat(target) {
       return target.targetKey.endsWith('report.txt') ? { type: 'file' } : undefined
@@ -151,11 +151,11 @@ test('server only returns validated absolute attachment paths', async () => {
   }
 
   assert.deepEqual(await resolvePaths(fs, {
-    cwd: 'D:\\workspace',
+    cwd: resolve('workspace'),
     entries: [{ name: 'report.txt', hint: '' }],
-  }), ['D:\\workspace\\report.txt'])
+  }), [resolve('workspace', 'report.txt')])
   assert.deepEqual(await resolvePaths(fs, {
-    cwd: 'D:\\workspace',
+    cwd: resolve('workspace'),
     entries: [{ name: 'missing.txt', hint: '' }],
   }), [''])
 })
@@ -413,4 +413,20 @@ test('a parked submit yields to a composition that opens before it fires', async
   await new Promise((resolve) => setTimeout(resolve, 30))
   assert.deepEqual(written, ['submit'])
   gate.dispose()
+})
+
+test('compiled browser entry remains a classic ModuleLoader script', () => {
+  assert.equal(clientDefinition.id, 'dsh-file-drop-attachments-persisted')
+  assert.equal(clientModule.default.name, 'dsh-file-drop-attachments')
+  assert.equal(typeof clientModule.default.apply, 'function')
+  // vm.Script rejects ES module syntax, which DSH's classic loader cannot use.
+  assert.doesNotThrow(() => new vm.Script(clientSource))
+})
+
+test('package entrypoints continue to resolve the prebuilt runtime files', async () => {
+  const packageJson = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'))
+  assert.equal(packageJson.main, 'lib/index.js')
+  assert.equal(packageJson.exports['.'], './lib/index.js')
+  assert.equal(packageJson.exports['./client'], './lib/client.js')
+  assert.equal(packageJson.dsh.bundle.patch, './cordis.patch.yml')
 })
