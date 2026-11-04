@@ -74,6 +74,32 @@ powershell -ExecutionPolicy Bypass -File ./install.ps1
 
 Restart DSH Web afterwards, exactly as with the `dsh plugin` path. Add `-NoInstall` when the dependency is already linked and only the files and the profile registration need refreshing.
 
+## Development
+
+The host and client sources live in `src/index.ts` and `src/client.ts` and are
+checked with TypeScript's strict mode. Install the development dependencies with
+`npm ci`, then use:
+
+```bash
+npm run typecheck
+npm test
+```
+
+`npm test` builds before running the Node regression tests. `npm run build`
+regenerates `lib/index.js` and `lib/client.js`; commit those outputs with source
+changes. The compiled files remain checked in so GitHub and offline installs do
+not need TypeScript or a build step. The existing package exports and DSH bundle
+configuration continue to point to `lib/`.
+
+The client is intentionally a classic script registered with
+`window.__ModuleLoader__`, not an ES module. Its React dependencies are supplied
+by DSH at runtime; the React packages in development dependencies contain types
+only. Do not add runtime imports or exports to `src/client.ts`.
+
+CI checks strict types, regression tests, and that the committed `lib/` outputs
+match the sources. The optional `test/cdp-drop-verify.mjs` script needs a running
+DSH browser session and is not part of the isolated Node test suite.
+
 ## License
 
 GPL-3.0-only. See `LICENSE`.
